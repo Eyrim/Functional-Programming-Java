@@ -9,4 +9,15 @@ public record Apple(Colour colour, LocalDate datePicked, LocalDate bestBefore) i
     public int getCount() {
         return 1;
     }
+
+    @Override
+    public String toString() {
+        return "Apple: " +
+                "Colour = " +
+                colour.toString() +
+                " Date Picked = " +
+                datePicked.toString() +
+                " Best Before = " +
+                bestBefore.toString();
+    }
 }

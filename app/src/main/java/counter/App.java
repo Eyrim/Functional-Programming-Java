@@ -7,23 +7,23 @@ import counter.items.Apple;
 import counter.items.Box;
 import counter.items.Cart;
 import counter.items.Colour;
-
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class App {
     public static void main(String[] argv) {
         // Some things to count
         List<Apple> someApples = Arrays.asList(
-                new Apple(Colour.RED, LocalDate.of(2023, 3, 8), LocalDate.of(2023, 5, 4)),
-                new Apple(Colour.RED, LocalDate.of(2023, 2, 10), LocalDate.of(2023, 6, 20)),
-                new Apple(Colour.RED, LocalDate.of(2023, 1, 7), LocalDate.of(2023, 4, 18)),
-                new Apple(Colour.YELLOW, LocalDate.of(2023, 3, 25), LocalDate.of(2023, 5, 11)),
-                new Apple(Colour.YELLOW, LocalDate.of(2023, 2, 23), LocalDate.of(2023, 4, 16)),
-                new Apple(Colour.GREEN, LocalDate.of(2023, 2, 12), LocalDate.of(2023, 3, 7)),
-                new Apple(Colour.GREEN, LocalDate.of(2023, 2, 9), LocalDate.of(2023, 5, 9)),
-                new Apple(Colour.GREEN, LocalDate.of(2023, 3, 1), LocalDate.of(2023, 4, 10))
+            new Apple(Colour.RED, LocalDate.of(2023, 3, 8), LocalDate.of(2023, 5, 4)),
+            new Apple(Colour.RED, LocalDate.of(2023, 2, 10), LocalDate.of(2023, 6, 20)),
+            new Apple(Colour.RED, LocalDate.of(2023, 1, 7), LocalDate.of(2023, 4, 18)),
+            new Apple(Colour.YELLOW, LocalDate.of(2023, 3, 25), LocalDate.of(2023, 5, 11)),
+            new Apple(Colour.YELLOW, LocalDate.of(2023, 2, 23), LocalDate.of(2023, 4, 16)),
+            new Apple(Colour.GREEN, LocalDate.of(2023, 2, 12), LocalDate.of(2023, 3, 7)),
+            new Apple(Colour.GREEN, LocalDate.of(2023, 2, 9), LocalDate.of(2023, 5, 9)),
+            new Apple(Colour.GREEN, LocalDate.of(2023, 3, 1), LocalDate.of(2023, 4, 10))
         );
 
         Box<Apple> boxOfApples = new Box<>();
@@ -35,15 +35,152 @@ public class App {
 
         System.out.println("Lambda Exercise Output:");
         // Add your lambda exercises here
+        System.out.println("Single Comparator");
+        List<Apple> comparatorApples = new java.util.ArrayList<>(List.copyOf(someApples));
+        comparatorApples.sort(new AppleComparator());
+
+        printApples(comparatorApples);
+
+        System.out.println("For Each");
+        someApples.stream()
+            .map(Apple::toString)
+            .forEach(System.out::println);
+
+        System.out.println("Array of comparators");
+        List<Comparator<Apple>> comparators = List.of(
+            (apple1, apple2) -> {
+                if (apple1.datePicked().equals(apple2.datePicked())) {
+                    return 0;
+                }
+                if (apple1.datePicked().isBefore(apple2.datePicked())) {
+                    return -1;
+                }
+                if (apple1.datePicked().isAfter(apple2.datePicked())) {
+                    return 1;
+                }
+
+                return 0;
+            },
+            (apple1, apple2) -> {
+                if (apple1.bestBefore().equals(apple2.bestBefore())) {
+                    return 0;
+                }
+                if (apple1.bestBefore().isBefore(apple2.bestBefore())) {
+                    return -1;
+                }
+                if (apple1.bestBefore().isAfter(apple2.bestBefore())) {
+                    return 1;
+                }
+
+                return 0;
+            },
+            (apple1, apple2) -> {
+                final Apple[] sorted = List.of(apple1, apple2).toArray(Apple[]::new);
+                Arrays.sort(Arrays.stream(sorted)
+                    .map(Apple::colour)
+                    .map(Colour::toString)
+                    .toList().toArray(String[]::new));
+
+                if (sorted[0].equals(apple1)) {
+                    return -1;
+                }
+                if (sorted[1].equals(apple1)) {
+                    return 1;
+                }
+
+
+                return 0;
+            }
+        );
+
+        printApples(someApples, comparators);
 
         System.out.println("Streams Exercises Output:");
         // Add your stream exercises here
+        // 1. Print all the apples in the list
+        System.out.println("All Apples:");
+        someApples.stream()
+            .forEach(System.out::println);
+
+        System.out.println("---------------");
+        // 2. Print all the apples in the list but skip the first 3
+        System.out.println("n-3 Apples:");
+        someApples.stream()
+            .skip(3)
+            .forEach(System.out::println);
+
+        System.out.println("---------------");
+
+        // 3. Find the first element in the list and if it's present, print it
+        System.out.println("n-(n-1) Apples:");
+        someApples.stream()
+            .findFirst()
+            .ifPresent(System.out::println);
+
+        System.out.println("---------------");
+
+        // 4.  Filter out apples picked before a certain date and print them
+        System.out.println("Apples picked after the 4th month");
+        someApples.stream()
+            .filter((apple) -> apple.datePicked().isAfter(LocalDate.of(2023, 3, 31)))
+            .forEach(System.out::println);
+
+        System.out.println("---------------");
+
+        // 5. Filter out apples with a best before a certain date, and print
+        System.out.println("Apples best before 2023-03-01 with colour");
+        someApples.stream()
+            .filter((apple) -> apple.bestBefore().isBefore(LocalDate.of(2023, 3, 1)))
+            .forEach((apple) -> System.out.println("There is a " + apple.colour() + " that is best before " + apple.bestBefore()));
+
+        System.out.println("---------------");
+
+        // 6. Filter out red apples, and print their best before of non red
+        System.out.println("Non-red apples and best before");
+        someApples.stream()
+            .filter(apple -> apple.colour() != Colour.RED)
+            .forEach(apple -> System.out.println("There is a " + apple.colour() + " apple with best before " + apple.bestBefore()));
+
+        System.out.println("---------------");
+
+        // 7. Sort apples by date picked, skip the first three and print the names of the rest
+        System.out.println("Sorted by date picked, skip first 3, print names of the rest");
+        someApples.stream()
+            .sorted(comparators.get(0))
+            .skip(3)
+            .forEach(System.out::println);
+
+        System.out.println("---------------");
+
+        // 8. Use .collect to get a list of apples whose colour contains an e, and print them
+        System.out.println("Colour contains e, printed");
+        someApples.stream()
+            .filter(apple -> apple.colour().toString().toLowerCase().contains("e"))
+            .collect(Collectors.toList())
+            .forEach(apple ->
+                System.out.println("There is a " + apple.colour() + " apple with best before " + apple.bestBefore()));
+
+        System.out.println("---------------");
+
+        // 9. Use .count to count how many apples were picked after a certain date
+        System.out.println("No. apples picked after 3th month");
+        System.out.println(someApples.stream()
+            .filter(apple -> apple.datePicked().isAfter(LocalDate.of(2023, 2, 28)))
+            .count());
+
+        System.out.println("---------------");
+
 
         System.out.println("Predicate Exercises Output:");
         Counter<Apple> appleCounter = new Counter<>();
+        Counter<Apple> redAppleCounter = new Counter<>();
+        Predicate<Apple> redPredicate = (apple) -> apple.colour().equals(Colour.RED);
+
         someApples.forEach(appleCounter::add);
+        someApples.forEach(apple -> redAppleCounter.add(apple, redPredicate));
 
         System.out.println(appleCounter.getCount()); // Should be 8
+        System.out.println(redAppleCounter.getCount() + " Red Apples"); // Should be 3
 
         Counter<Cart<Apple>> cartCounter = new Counter<>();
         cartCounter.add(cart);
@@ -55,5 +192,22 @@ public class App {
         anythingCounter.add(cart);
 
         System.out.println(anythingCounter.getCount()); // Should be 10 - sum of the above
+    }
+
+    private static void printApples(Collection<Apple> apples) {
+        apples.stream()
+            .map(Apple::toString)
+            .forEach(System.out::println);
+    }
+
+    private static void printApples(List<Apple> apples, List<Comparator<Apple>> comparators) {
+        comparators.stream()
+            .forEach((comparator) -> {
+                final List<Apple> sortedApples = new java.util.ArrayList<>(List.copyOf(apples));
+
+                sortedApples.sort(comparator);
+                printApples(sortedApples);
+                System.out.println("---------------");
+            });
     }
 }
