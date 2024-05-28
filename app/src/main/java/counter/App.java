@@ -16,6 +16,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class App {
+    private static List<Apple> someApples;
+
     public static void main(String[] argv) {
         // Some things to count
         List<Apple> someApples = Arrays.asList(
@@ -28,6 +30,7 @@ public class App {
                 new Apple(Colour.GREEN, LocalDate.of(2023, 2, 9), LocalDate.of(2023, 5, 9)),
                 new Apple(Colour.GREEN, LocalDate.of(2023, 3, 1), LocalDate.of(2023, 4, 10)));
 
+        App.someApples = someApples;
         Box<Apple> boxOfApples = new Box<>();
         boxOfApples.add(new Apple(Colour.RED, LocalDate.of(2023, 3, 8), LocalDate.of(2023, 5, 4)));
         boxOfApples.add(new Apple(Colour.YELLOW, LocalDate.of(2023, 2, 23), LocalDate.of(2023, 4, 16)));
@@ -41,8 +44,8 @@ public class App {
         // for this, don’t create your own class)
         // Use an inline anonymous class
         // Use a lambda expression
-        Collections.sort(new ArrayList<>(someApples), new AppleComparator());
-        Collections.sort(new ArrayList<>(someApples), new Comparator<Apple>() {
+        Collections.sort(apples(), new AppleComparator());
+        Collections.sort(apples(), new Comparator<Apple>() {
             @Override
             public int compare(Apple apple1, Apple apple2) {
                 if (apple1.bestBefore().isBefore(apple2.bestBefore())) {
@@ -54,7 +57,7 @@ public class App {
                 }
             }
         });
-        Collections.sort(new ArrayList<>(someApples), (apple1, apple2) -> {
+        Collections.sort(apples(), (apple1, apple2) -> {
             if (apple1.bestBefore().isBefore(apple2.bestBefore())) {
                 return -1;
             } else if (apple1.bestBefore() == apple2.bestBefore()) {
@@ -83,6 +86,10 @@ public class App {
         anythingCounter.add(cart);
 
         System.out.println(anythingCounter.getCount()); // Should be 10 - sum of the above
+    }
+
+    private static List<Apple> apples() {
+        return new ArrayList<>(someApples);
     }
 
     public static class AppleComparator implements Comparator<Apple> {
