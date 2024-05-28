@@ -13,8 +13,8 @@ public class Counter<T extends Countable> implements Countable {
         count += item.getCount();
     }
 
-    public void add(T item, Predicate<T> predicate) {
-        if (predicate.test(item)) {
+    public void add(T item, final Predicate<T> shouldCountPredicate) {
+        if (shouldCountPredicate.test(item)) {
             count += item.getCount();
         }
     }
